@@ -1,6 +1,3 @@
-/* App.css */
-
-/* Global Styles */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -8,56 +5,37 @@
 }
 
 body {
-  /* Using a modern sans-serif font stack. Consider importing 'Inter' or 'Manrope' via Google Fonts for a more distinct look. */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, sans-serif;
-  background-color: #f8f9fa; /* Very light grey, almost off-white background */
-  color: #212529; /* Darker primary text color */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh; /* Use min-height to ensure full viewport coverage even if content is short */
-  margin: 0;
-  padding: 20px; /* Add some padding to the body for smaller screens */
+  padding: 20px;
 }
 
-/* Main Container - renamed from .App to align with your TSX className usage (if App is the outer wrapper)
-   If .App is meant to be the card, then keep it as .App and ensure your TSX has <div className="App"> as the card.
-   Assuming .App from your original CSS is the card-like element.
-*/
 .App {
-  /* This should be the main card component */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
   padding: 40px;
-  background-color: #ffffff; /* White background */
-  border-radius: 12px; /* Slightly larger radius */
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05); /* Softer, more diffused shadow */
+  background-color: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
   width: 100%;
-  max-width: 650px; /* Slightly wider */
+  max-width: 650px;
 }
 
-/* Header - Targets the className="header" on your h1 in App.tsx */
 .header {
-  /* Was h1 */
-  color: #4f46e5; /* Modern Indigo/Purple accent */
-  font-size: 2.25rem; /* Adjusted size */
-  margin-bottom: 30px; /* More spacing */
+  color: var(--accent);
+  font-size: 2.25rem;
+  margin-bottom: 30px;
   font-weight: 700;
 }
 
-/* Input Field - Targets className="input-field" on your input in App.tsx */
 .input-field {
-  /* Was input */
-  background-color: #f1f3f5; /* Light background for input */
-  color: #343a40;
-  padding: 15px; /* More padding */
-  width: 100%; /* Adjusted in media query below for consistency */
+  background-color: var(--bg-input);
+  color: var(--text-input);
+  padding: 15px;
+  width: 100%;
   margin-bottom: 25px;
-  border: 1px solid transparent; /* Borderless by default */
+  border: 1px solid transparent;
   border-radius: 8px;
   font-size: 1rem;
   outline: none;
@@ -65,55 +43,170 @@ body {
 }
 
 .input-field:focus {
-  border-color: #4f46e5; /* Indigo border on focus */
-  background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); /* Focus ring */
+  border-color: var(--accent);
+  background-color: var(--bg-card);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
-/* Button - Targets className="generate-btn" on your button in App.tsx */
 .generate-btn {
-  /* Was button */
-  background-color: #4f46e5; /* Indigo accent */
-  color: white;
+  background-color: var(--accent);
+  color: var(--text-on-accent);
   border: none;
   padding: 15px 30px;
   font-size: 1.1rem;
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
-  width: 100%; /* Adjusted in media query below for consistency */
+  width: 100%;
   font-weight: 600;
   letter-spacing: 0.5px;
 }
 
 .generate-btn:hover {
-  background-color: #4338ca; /* Darker Indigo on hover */
-  transform: translateY(-2px); /* Subtle lift effect */
+  background-color: var(--accent-hover);
+  transform: translateY(-2px);
 }
 
 .generate-btn:disabled,
 .generate-btn.loading {
-  /* Added .loading for consistency */
-  background-color: #adb5bd; /* Neutral disabled state */
+  background-color: var(--border-light);
   cursor: not-allowed;
   transform: translateY(0);
+  color: var(--text-muted);
 }
 
-/* Article Section */
+.settings-bar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.settings-toggle {
+  background: none;
+  border: 1px solid var(--border-light);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  transition: background-color 0.2s;
+}
+
+.settings-toggle:hover {
+  background-color: var(--bg-input);
+}
+
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border-light);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text-muted);
+  transition: background-color 0.2s;
+  line-height: 1;
+}
+
+.theme-toggle:hover {
+  background-color: var(--bg-input);
+}
+
+.settings-panel {
+  width: 100%;
+  background: var(--bg-card-accent);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.settings-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.settings-input {
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 4px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: var(--bg-card);
+  color: var(--text-input);
+}
+
+.settings-input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.model-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.settings-select {
+  flex: 1;
+  padding: 8px 10px;
+  margin-top: 4px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: var(--bg-card);
+  color: var(--text-input);
+  cursor: pointer;
+}
+
+.settings-select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.refresh-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.refresh-btn:hover {
+  background-color: var(--bg-input);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .article {
-  background-color: #f8f9fa; /* Consistent light grey background */
+  background-color: var(--bg-card-accent);
   padding: 25px;
   border-radius: 8px;
   margin-top: 35px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Subtle inset-like shadow */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   text-align: left;
   width: 100%;
 }
 
-/* Article Headline - Targets className="article-headline" on your h2 in App.tsx */
 .article-headline {
-  /* Was .article h2 */
-  color: #4f46e5; /* Indigo accent for headline */
+  color: var(--accent);
   font-size: 1.75rem;
   margin-bottom: 20px;
   font-weight: 600;
@@ -122,46 +215,66 @@ body {
 .article p {
   margin: 12px 0;
   font-size: 1rem;
-  line-height: 1.7; /* Improved line height for readability */
-  color: #495057; /* Slightly lighter text for paragraphs */
+  line-height: 1.7;
+  color: var(--text-article-p, var(--text-body));
 }
 
 .article strong {
-  color: #212529; /* Darker text for emphasis */
+  color: var(--text-strong);
   font-weight: 600;
 }
 
-/* Error Message */
+.tags-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tag-pill {
+  display: inline-block;
+  background-color: var(--bg-tag);
+  color: var(--text-tag);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 .error {
-  color: #e03131; /* Vivid Red for error messages */
+  color: var(--text-error);
   margin-top: 15px;
   font-size: 0.9rem;
   font-weight: 500;
 }
 
-/* Mobile responsiveness */
+.bot-image {
+  width: 150px;
+  height: auto;
+  display: block;
+  margin: 20px auto;
+}
+
 @media (max-width: 768px) {
   .App {
     padding: 25px;
-    margin: 15px; /* Add some margin on mobile */
-    width: auto; /* Allow it to take available width within body padding */
+    margin: 15px;
+    width: auto;
   }
 
   .header {
-    /* Was h1 */
     font-size: 1.8rem;
   }
 
-  /* Ensure input and button take full width inside .App on mobile */
   .input-field,
   .generate-btn {
     width: 100%;
   }
-}
-/* Styling for the bot image */
-.bot-image {
-  width: 150px; /* Adjust the width */
-  height: auto; /* Maintain aspect ratio */
-  display: block;
-  margin: 20px auto; /* Center the image with some margin */
 }

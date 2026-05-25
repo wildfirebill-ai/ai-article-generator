@@ -1,95 +1,148 @@
-import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { ChatOpenAI } from '@langchain/openai';
 
-// Express setup
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Type used for parsing structured responses
-type TextPart = { type: 'text'; text: string };
+const ollamaGenerate = async (
+  prompt: string,
+  model: string,
+  baseUrl: string
+): Promise<string> => {
+  const res = await fetch(`${baseUrl}/api/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, prompt, stream: false }),
+  });
 
-// Extracts clean text from LangChain response
-const extractText = (message: { content: any }): string => {
-  const content = message.content;
+  if (!res.ok) {
+    throw new Error(`Ollama error: ${res.status} ${await res.text()}`);
+  }
 
-  if (typeof content === 'string') return content;
-
-  if (!Array.isArray(content)) return '';
-
-  return content
-    .filter(
-      (part): part is TextPart =>
-        typeof part === 'object' &&
-        part !== null &&
-        'type' in part &&
-        (part as any).type === 'text' &&
-        typeof (part as any).text === 'string'
-    )
-    .map((part) => part.text)
-    .join(' ');
+  const data = await res.json();
+  return data.response;
 };
 
-// LangChain model config
-const model = new ChatOpenAI({
-  modelName: 'llama3-70b-8192',
-  openAIApiKey: process.env.GROQ_API_KEY,
-  configuration: {
-    baseURL: 'https://api.groq.com/openai/v1',
-  },
-});
-
 // AI steps
-const generateHeadline = async (topic: string): Promise<string> => {
-  const raw = await model.invoke(`Generate a catchy headline for: ${topic}`);
-  const text = extractText(raw);
-  const match = text.match(/["“](.*?)["”]/);
+const generateHeadline = async (
+  topic: string,
+  model: string,
+  baseUrl: string
+): Promise<string> => {
+  const text = await ollamaGenerate(
+    `Generate a catchy headline for: ${topic}. Return only the headline, no extra text.`,
+    model,
+    baseUrl
+  );
+  const match = text.match(/[""](.*?)[""]/);
   return match?.[1] || text.split('\n')[0];
 };
 
-const generateIntro = async (headline: string): Promise<string> => {
-  const raw = await model.invoke(
-    `Write an engaging introduction for: "${headline}"`
+const generateIntro = async (
+  headline: string,
+  model: string,
+  baseUrl: string
+): Promise<string> => {
+  return ollamaGenerate(
+    `Write an engaging introduction for: "${headline}"`,
+    model,
+    baseUrl
   );
-  return extractText(raw);
 };
 
-const generateBody = async (intro: string): Promise<string> => {
-  const raw = await model.invoke(
-    `Write a detailed body expanding on: ${intro}`
+const generateBody = async (
+  intro: string,
+  model: string,
+  baseUrl: string
+): Promise<string> => {
+  return ollamaGenerate(
+    `Write a detailed body expanding on: ${intro}`,
+    model,
+    baseUrl
   );
-  return extractText(raw);
 };
 
-const generateConclusion = async (body: string): Promise<string> => {
-  const raw = await model.invoke(`Write a conclusion for this: ${body}`);
-  return extractText(raw);
+const generateConclusion = async (
+  body: string,
+  model: string,
+  baseUrl: string
+): Promise<string> => {
+  return ollamaGenerate(
+    `Write a conclusion for this: ${body}`,
+    model,
+    baseUrl
+  );
+};
+
+const generateTags = async (
+  headline: string,
+  intro: string,
+  body: string,
+  model: string,
+  baseUrl: string
+): Promise<string[]> => {
+  const text = await ollamaGenerate(
+    `Generate 5-10 SEO-optimized tags/keywords for an article with the following headline, intro, and body. Return ONLY a comma-separated list of tags, no numbering, no extra text.\n\nHeadline: ${headline}\n\nIntro: ${intro}\n\nBody: ${body}`,
+    model,
+    baseUrl
+  );
+  return text
+    .split(',')
+    .map((t) => t.trim().replace(/^["']|["']$/g, ''))
+    .filter((t) => t.length > 0);
 };
 
 // Orchestrate full article
-const generateArticle = async (topic: string) => {
-  const headline = await generateHeadline(topic);
-  const intro = await generateIntro(headline);
-  const body = await generateBody(intro);
-  const conclusion = await generateConclusion(body);
-  return { headline, intro, body, conclusion };
+const generateArticle = async (
+  topic: string,
+  model: string,
+  baseUrl: string
+) => {
+  const headline = await generateHeadline(topic, model, baseUrl);
+  const intro = await generateIntro(headline, model, baseUrl);
+  const body = await generateBody(intro, model, baseUrl);
+  const conclusion = await generateConclusion(body, model, baseUrl);
+  const tags = await generateTags(headline, intro, body, model, baseUrl);
+  return { headline, intro, body, conclusion, tags };
 };
 
-// API route
+// List models from Ollama
+app.get('/models', async (_req, res) => {
+  const baseUrl = _req.query.baseUrl as string || 'http://localhost:11434';
+  try {
+    const ollamaRes = await fetch(`${baseUrl}/api/tags`);
+    if (!ollamaRes.ok) {
+      return res.status(502).json({ error: 'Failed to reach Ollama' });
+    }
+    const data = await ollamaRes.json();
+    const models = (data.models || []).map((m: any) => ({
+      name: m.name,
+      size: m.size,
+      modified: m.modified_at,
+    }));
+    res.json(models);
+  } catch (err) {
+    res.status(502).json({ error: 'Cannot connect to Ollama' });
+  }
+});
+
+// Generate article
 app.post('/generate-article', async (req, res) => {
-  const { topic } = req.body;
+  const { topic, model, baseUrl } = req.body;
 
   if (!topic) {
     return res.status(400).json({ error: 'Topic is required.' });
   }
 
+  const ollamaModel = model || 'llama3.2';
+  const ollamaUrl = baseUrl || 'http://localhost:11434';
+
   try {
-    const article = await generateArticle(topic);
+    const article = await generateArticle(topic, ollamaModel, ollamaUrl);
     res.json(article);
   } catch (err) {
-    console.error('❌ Error generating article:', err);
+    console.error('Error generating article:', err);
     res.status(500).json({ error: 'Failed to generate article.' });
   }
 });
@@ -97,5 +150,5 @@ app.post('/generate-article', async (req, res) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
